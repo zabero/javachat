@@ -1,7 +1,18 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.net.Socket;
+import java.util.*;
 
 public class ChatClientGUI {
+    private static JTextArea chatWindow;
+    private static JTextArea messageInput;
+    private static JList<String> userList;
+    private static DefaultListModel<String> userListModel;
+    private static PrintWriter out;
+
     public static void main(String[] args) {
         // Create the main frame
         JFrame frame = new JFrame("Okno programu");
@@ -15,19 +26,21 @@ public class ChatClientGUI {
         frame.add(mainPanel);
 
         // Okno rozmowy
-        JTextArea chatWindow = new JTextArea();
+        chatWindow = new JTextArea();
         chatWindow.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
         chatWindow.setBounds(10, 10, 550, 400); // Ustal pozycję i rozmiar zgodnie ze schematem
+        chatWindow.setEditable(false); // make chat window read-only
         mainPanel.add(chatWindow);
 
         // Lista podłączonych użytkowników
-        JList<String> userList = new JList<>();
+        userListModel = new DefaultListModel<>();
+        userList = new JList<>(userListModel);
         userList.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2));
         userList.setBounds(570, 10, 200, 200); // Ustal pozycję i rozmiar zgodnie ze schematem
         mainPanel.add(userList);
 
         // Okno wpisywania wiadomości
-        JTextArea messageInput = new JTextArea();
+        messageInput = new JTextArea();
         messageInput.setBorder(BorderFactory.createLineBorder(Color.GREEN, 2));
         messageInput.setBounds(10, 420, 550, 100); // Ustal pozycję i rozmiar zgodnie ze schematem
         mainPanel.add(messageInput);
@@ -56,7 +69,75 @@ public class ChatClientGUI {
         showHistoryButton.setBounds(570, 300, 200, 30); // Ustal pozycję i rozmiar zgodnie ze schematem
         mainPanel.add(showHistoryButton);
 
+        // Add action listeners
+        sendMessageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage();
+            }
+        });
+
+        showHistoryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                requestChatHistory();
+            }
+        });
+
+        // Connect to the server
+        connectToServer();
+
         // Display the frame
         frame.setVisible(true);
+    }
+
+    private static void connectToServer() {
+        try {
+            Socket socket = new Socket("localhost", 12345);
+            out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // Request user name
+            String userName = JOptionPane.showInputDialog("Enter your name:");
+            out.println(userName);
+
+            // Start a new thread to listen for messages from the server
+            new Thread(new Runnable() {
+                public void run() {
+                    String message;
+                    try {
+                        while ((message = in.readLine()) != null) {
+                            if (message.startsWith("USER: ")) {
+                                updateUserList(message.substring(6));
+                            } else {
+                                chatWindow.append(message + "\n");
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void sendMessage() {
+        String message = messageInput.getText().trim();
+        if (!message.isEmpty()) {
+            out.println(message);
+            messageInput.setText("");
+        }
+    }
+
+    private static void requestChatHistory() {
+        out.println("/history");
+    }
+
+    private static void updateUserList(String userName) {
+        if (!userListModel.contains(userName)) {
+            userListModel.addElement(userName);
+        }
     }
 }
