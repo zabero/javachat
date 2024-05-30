@@ -1,14 +1,19 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ChatServer {
     private static final int PORT = 12345;
     private static Set<ClientHandler> clientHandlers = new HashSet<>();
     private static List<String> chatHistory = new ArrayList<>();
+    private static final String HISTORY_FILE = "chat_history.txt";
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
     public static void main(String[] args) {
         System.out.println("Chat server started...");
+        loadChatHistory(); // Load chat history from file on server startup
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -22,10 +27,12 @@ public class ChatServer {
     }
 
     public static synchronized void broadcast(String message, ClientHandler excludeUser) {
-        chatHistory.add(message);
+        String messageWithTime = addTimeToMessage(message);
+        chatHistory.add(messageWithTime);
+        saveChatHistory(); // Save chat history after each broadcast
         for (ClientHandler client : clientHandlers) {
             if (client != excludeUser) {
-                client.sendMessage(message);
+                client.sendMessage(messageWithTime);
             }
         }
     }
@@ -44,6 +51,36 @@ public class ChatServer {
             userNames.add(client.getUserName());
         }
         return userNames;
+    }
+
+    // Load chat history from file
+    private static void loadChatHistory() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                chatHistory.add(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading chat history: " + e.getMessage());
+        }
+    }
+
+    // Save chat history to file
+    private static void saveChatHistory() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE))) {
+            for (String message : chatHistory) {
+                writer.write(message);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving chat history: " + e.getMessage());
+        }
+    }
+
+    // Add current time to message
+    public static String addTimeToMessage(String message) {
+        String time = dateFormat.format(new Date());
+        return "[" + time + "] " + message;
     }
 }
 
@@ -108,7 +145,8 @@ class ClientHandler extends Thread {
     public void sendUserList() {
         Set<String> userNames = ChatServer.getUserNames();
         for (String userName : userNames) {
-            out.println("USER: " + userName);
+            String message = "USER: " + userName;
+            out.println(ChatServer.addTimeToMessage(message));
         }
     }
 

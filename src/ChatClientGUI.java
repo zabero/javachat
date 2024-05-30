@@ -12,10 +12,12 @@ public class ChatClientGUI {
     private static JList<String> userList;
     private static DefaultListModel<String> userListModel;
     private static PrintWriter out;
+    private static JFrame frame;
+
 
     public static void main(String[] args) {
         // Create the main frame
-        JFrame frame = new JFrame("Okno programu");
+        frame = new JFrame("Okno programu");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setLayout(new BorderLayout());
@@ -26,11 +28,13 @@ public class ChatClientGUI {
         frame.add(mainPanel);
 
         // Okno rozmowy
+        JScrollPane chatScrollPane = new JScrollPane();
+        chatScrollPane.setBounds(10, 10, 550, 400);
         chatWindow = new JTextArea();
         chatWindow.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        chatWindow.setBounds(10, 10, 550, 400); // Ustal pozycję i rozmiar zgodnie ze schematem
-        chatWindow.setEditable(false); // make chat window read-only
-        mainPanel.add(chatWindow);
+        chatWindow.setEditable(false);
+        chatScrollPane.setViewportView(chatWindow);
+        mainPanel.add(chatScrollPane);
 
         // Lista podłączonych użytkowników
         userListModel = new DefaultListModel<>();
@@ -98,8 +102,12 @@ public class ChatClientGUI {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // Request user name
-            String userName = JOptionPane.showInputDialog("Enter your name:");
+            String userName = null;
+            while (userName == null || userName.trim().isEmpty()) {
+                userName = JOptionPane.showInputDialog("Enter your name:");
+            }
             out.println(userName);
+            frame.setTitle("Komunikator: " + userName);
 
             // Start a new thread to listen for messages from the server
             new Thread(new Runnable() {
@@ -132,6 +140,7 @@ public class ChatClientGUI {
     }
 
     private static void requestChatHistory() {
+        chatWindow.setText("");
         out.println("/history");
     }
 

@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ba1e877f-957d-491a-862f-a6a2da7b381c" name="Changes" comment="" />
+    <list default="true" id="ba1e877f-957d-491a-862f-a6a2da7b381c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ChatClientGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ChatClientGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ChatServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ChatServer.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -33,10 +37,10 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "server"
+    "git-widget-placeholder": "develop"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.client2">
     <configuration name="chat server" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="ChatServer" />
       <module name="Project_Chat_java" />
@@ -66,5 +70,9 @@
       <updated>1717056056861</updated>
     </task>
     <servers />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
